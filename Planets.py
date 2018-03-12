@@ -136,7 +136,7 @@ class Planet:
         return 0
 
     # method : draws antialiased circle
-    def draw(self, screen, aa=True, color=None, image=None):
+    def draw(self, screen, aa=False, color=None, image=None):
         if image is not None and color is not None:
             planet_texture = GUI.Background('physics_weed.png', [round(self.pos_x), round(self.pos_y)])
             planet_texture.image = GUI.colorize(planet_texture.image, color)

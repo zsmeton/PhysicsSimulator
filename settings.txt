@@ -1,0 +1,7 @@
+420: False
+walls: False
+trails: False
+cool_trail: False
+strobe: False
+aa: True
+t_step: 0.5

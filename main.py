@@ -4,6 +4,7 @@
 import ctypes
 import random
 import time
+import re
 
 import pygame as pg
 
@@ -23,7 +24,62 @@ ACTIVE = (56, 0, 94)
 # get amount of planets for the simulation
 amntOfPlanets = 0
 
+walls = False
+trails = False
+cool_trail = False
+strobe = False
+setup = False
+weed = False
+aa = False
 t_step = .2
+settings = {'walls': False, 'trails': False, 'cool_trail': False, 'strobe': False, 'aa': False, 't_step': 0.2}
+
+with open("settings.txt", 'r+') as data:
+    for line in data:
+        for setting in settings:
+            if setting in line:
+                if 'False' in line:
+                    settings[setting] = False
+                elif 'True' in line:
+                    settings[setting] = True
+                else:
+                    amount = re.findall("\d+\.\d+", line)
+                    amount = float(amount[0])
+                    settings[setting] = amount
+print(settings)
+locals().update(settings)
+
+'''
+# gets user settings from settings:
+with open('settings.txt', 'r+') as file:
+    data = file.readlines()
+    for line in data:
+        if "walls" in line:
+            if "False" in line:
+                walls = False
+            elif "True" in line:
+                walls = True
+        elif "trails" in line:
+            if "False" in line:
+                trails = False
+            elif "True" in line:
+                trails = True
+        elif "cool_trail" in line:
+            if "False" in line:
+                cool_trail = False
+            elif "True" in line:
+                cool_trail = True
+        elif "strobe" in line:
+            if "False" in line:
+                strobe = False
+            elif "True" in line:
+                strobe = True
+        elif "aa" in line:
+            if "False" in line:
+                aa = False
+            elif "True" in line:
+                aa = True
+'''
 
 # set up pygame
 pg.init()  # initializes screen full screen
@@ -38,26 +94,17 @@ rect_x = 50
 rect_y = 50
 w, h = pg.display.get_surface().get_size()  # gets the size of the screen for planet placement
 # image source :
-BackGround = GUI.Background('background_.jpg', [w/2, h/2])
+BackGround = GUI.Background('background_.jpg', [w / 2, h / 2])
 print(w, h)
 s_x = 27  # size of clearing box in x
 s_y = 27  # size of clearing box in y
 clear = pg.Surface((s_x, s_y))  # small clearing box for smaller screen updates
 clear.fill(BLACK)  # sets clearing box to black
 
-# global booleans:
-
-walls = False
-trail = False
-cool_trail = False
-strobe = False
-setup = False
-weed = False
-
 
 # the loop which runs once game setup has been completed
 def run_time(planet_list):
-    global walls, trail, cool_trail, strobe, setup
+    global walls, trails, cool_trail, strobe, setup
     new_simulation = False
     # Variable Creation
     t = 0
@@ -79,20 +126,20 @@ def run_time(planet_list):
                 # enable/disable strobe planets
                 elif event.key == pg.K_s:
                     strobe = not strobe
-                # enable/disable translucent trail
+                # enable/disable translucent trails
                 elif event.key == pg.K_t:
-                    trail = not trail
+                    trails = not trails
                     if cool_trail:
                         cool_trail = not cool_trail
                     elif not cool_trail:
                         screen.fill(BLACK)
                         pg.display.flip()
-                # enable/disable solid trail
+                # enable/disable solid trails
                 elif event.key == pg.K_c:
                     cool_trail = not cool_trail
-                    if trail:
-                        trail = not trail
-                    elif not trail:
+                    if trails:
+                        trails = not trails
+                    elif not trails:
                         screen.fill(BLACK)
                         pg.display.flip()
                 elif event.key == pg.K_r:
@@ -112,7 +159,7 @@ def run_time(planet_list):
                     planet_list.remove(merge_list[i])
 
         # deletes old drawings and replaces with black
-        if not trail and not cool_trail:
+        if not trails and not cool_trail:
             if len(planet_list[0].pos_x_list) > 2:
                 for planet in planet_list:
                     s = pg.Surface((round(planet.radius) * 3, round(planet.radius) * 3))
@@ -121,12 +168,13 @@ def run_time(planet_list):
                         planet.pos_x_list[-2] - planet.radius * 1.5, planet.pos_y_list[-2] - planet.radius * 1.5))
         # process for translucent tail
         if cool_trail:
-            trail = False
-            for planet in planet_list:
-                s = pg.Surface((round(planet.radius) * 2.2, round(planet.radius) * 2.2))
-                s.fill(BLACK)
-                s.set_alpha(5)
-                screen.blit(s, (planet.pos_x_list[-2] - planet.radius, planet.pos_y_list[-2] - planet.radius))
+            trails = False
+            if len(planet_list[0].pos_x_list) > 2:
+                for planet in planet_list:
+                    s = pg.Surface((round(planet.radius) * 2.2, round(planet.radius) * 2.2))
+                    s.fill(BLACK)
+                    s.set_alpha(5)
+                    screen.blit(s, (planet.pos_x_list[-2] - planet.radius, planet.pos_y_list[-2] - planet.radius))
 
         # draw each planet
         # strobe feature
@@ -136,14 +184,16 @@ def run_time(planet_list):
                     planet.draw(screen, image=True)
             else:
                 for planet in planet_list:
-                    planet.draw(screen)
+                    planet.draw(screen, aa=aa)
         else:
             if weed:
                 for planet in planet_list:
-                    planet.draw(screen, image=True, color=(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)))
+                    planet.draw(screen, image=True,
+                                color=(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)))
             else:
                 for planet in planet_list:
-                    planet.draw(screen, color=(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)))
+                    planet.draw(screen, color=(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)),
+                                aa=aa)
 
         # Prints time in simulation
         t = t + t_step
@@ -195,14 +245,9 @@ def introScreen():
 
 # loop for random generation user input for how many planets which are then generated
 def random_loop():
-    global walls, trail, cool_trail, strobe, setup, weed, amntOfPlanets
-    weed = False
+    global walls, trails, cool_trail, strobe, setup, weed, amntOfPlanets
     game_is_running = True  # as long as the game is running this is true and the pygame window persists
-    walls = False
-    trail = False
-    cool_trail = False
-    strobe = False
-    setup = False
+    locals().update(settings)
     input_box = GUI.InputBox(w / 2 - 100, h / 2, 200, 40)
     while game_is_running:
         user_input = None
@@ -247,20 +292,16 @@ def random_loop():
 
 # more interactive mode which allows users to set initial mass position and velocity of the planets
 def galaxy_creator():
-    global walls, trail, cool_trail, strobe, setup, weed
-    weed = False
+    global walls, trails, cool_trail, strobe, setup, weed
+    locals().update(settings)
     game_is_running = True  # as long as the game is running this is true and the pygame window persists
-    walls = False
-    trail = False
-    cool_trail = False
-    strobe = False
     planet_list = []
     slider_list = []
     color_list = []
     vector_list = []
     screen_limits = [w, h]
     run = False
-    tool_bar = GUI.ToolBar(w-3, h-3, 275, 60)
+    tool_bar = GUI.ToolBar(w - 3, h - 3, 275, 60)
     tool_selected = 0
     while game_is_running:
         done = False
@@ -396,12 +437,30 @@ def galaxy_creator():
 
             # draws planets
             for planet in reversed(planet_list):
-                planet.draw(screen)
+                planet.draw(screen, aa=aa)
             # draws tool box
             tool_bar.draw(screen)
             # updates screen
             pg.display.flip()
         run = True
+
+
+def settings():
+    in_settings = True
+    while in_settings:
+        # --- Set Up --- #
+        # Create Planets
+        for event in pg.event.get():
+            if event.type == pg.KEYUP:
+                if event.key == pg.K_ESCAPE:
+                    introScreen()
+        screen.fill(BLACK)
+        screen.blit(BackGround.image, BackGround.rect)
+        settings_text = pg.font.Font(None, 120)
+        text_surf, text_rect = GUI.text_objects("PHYSICS SIMULATOR PRO: 2018", settings_text)
+        text_rect.center = ((w / 2), (h / 2) - 500)
+        screen.blit(text_surf, text_rect)
+
 
 
 introScreen()
