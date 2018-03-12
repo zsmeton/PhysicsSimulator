@@ -208,6 +208,8 @@ def introScreen():
 # loop for random generation user input for how many planets which are then generated
 def random_loop():
     global settings, setup, weed
+    weed = False
+    setup = False
     game_is_running = True  # as long as the game is running this is true and the pygame window persists
     input_box = GUI.InputBox(w / 2 - 100, h / 2, 200, 40)
     while game_is_running:
@@ -254,6 +256,7 @@ def random_loop():
 # more interactive mode which allows users to set initial mass position and velocity of the planets
 def galaxy_creator():
     global settings, setup, weed
+    weed = False
     locals().update(settings)
     game_is_running = True  # as long as the game is running this is true and the pygame window persists
     planet_list = []
@@ -429,7 +432,7 @@ def set_page():
     aa_button = GUI.Button("Anti-Aliasing", w / 2 + x_pos, h / 2 + 2 * y_sep, width, height, INACTIVE, ACTIVE, state=settings['aa'], state_name='aa')
     buttons.append(aa_button)
 
-    t_step_button = GUI.Button("Accuracy", w / 2 + x_pos, h / 2 + 3 * y_sep, width, height, INACTIVE, ACTIVE, state=settings['t_step'], state_name='t_step')
+    t_step_button = GUI.Button("Speed", w / 2 + x_pos, h / 2 + 3 * y_sep, width, height, INACTIVE, ACTIVE, state=settings['t_step'], state_name='t_step')
     buttons.append(t_step_button)
 
     in_settings = True
@@ -457,8 +460,8 @@ def set_page():
             button.check_hover()
             button.draw(screen)
 
-            for line in fileinput.input('settings.txt', inplace=True):
-                try:
+            try:
+                for line in fileinput.input('settings.txt', inplace=True):
                     for setting in settings:
                         if setting in line:
                             line = line.replace("False", str(settings[setting]))
@@ -466,8 +469,8 @@ def set_page():
                             if "True" not in line and "False" not in line:
                                 line = "%s: %.1f" % (setting, settings[setting])
                             print(line)
-                except FileExistsError:
-                    print("Error occured try again")
+            except FileExistsError:
+                print("Error occured try again")
 
         print(settings)
         locals().update(settings)
