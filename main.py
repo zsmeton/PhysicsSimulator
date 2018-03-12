@@ -2,9 +2,10 @@
 # does mostly graphics and game setup
 
 import ctypes
+import fileinput
 import random
-import time
 import re
+import time
 
 import pygame as pg
 
@@ -24,15 +25,9 @@ ACTIVE = (56, 0, 94)
 # get amount of planets for the simulation
 amntOfPlanets = 0
 
-walls = False
-trails = False
-cool_trail = False
-strobe = False
-setup = False
 weed = False
-aa = False
-t_step = .2
 settings = {'walls': False, 'trails': False, 'cool_trail': False, 'strobe': False, 'aa': False, 't_step': 0.2}
+setup = False
 
 with open("settings.txt", 'r+') as data:
     for line in data:
@@ -47,39 +42,6 @@ with open("settings.txt", 'r+') as data:
                     amount = float(amount[0])
                     settings[setting] = amount
 print(settings)
-locals().update(settings)
-
-'''
-# gets user settings from settings:
-with open('settings.txt', 'r+') as file:
-    data = file.readlines()
-    for line in data:
-        if "walls" in line:
-            if "False" in line:
-                walls = False
-            elif "True" in line:
-                walls = True
-        elif "trails" in line:
-            if "False" in line:
-                trails = False
-            elif "True" in line:
-                trails = True
-        elif "cool_trail" in line:
-            if "False" in line:
-                cool_trail = False
-            elif "True" in line:
-                cool_trail = True
-        elif "strobe" in line:
-            if "False" in line:
-                strobe = False
-            elif "True" in line:
-                strobe = True
-        elif "aa" in line:
-            if "False" in line:
-                aa = False
-            elif "True" in line:
-                aa = True
-'''
 
 # set up pygame
 pg.init()  # initializes screen full screen
@@ -104,7 +66,7 @@ clear.fill(BLACK)  # sets clearing box to black
 
 # the loop which runs once game setup has been completed
 def run_time(planet_list):
-    global walls, trails, cool_trail, strobe, setup
+    global settings, setup
     new_simulation = False
     # Variable Creation
     t = 0
@@ -122,24 +84,24 @@ def run_time(planet_list):
                     introScreen()
                 # enable/disable wall collision
                 elif event.key == pg.K_w:
-                    walls = not walls
+                    settings['walls'] = not settings['walls']
                 # enable/disable strobe planets
                 elif event.key == pg.K_s:
-                    strobe = not strobe
+                    settings['strobe'] = not settings['strobe']
                 # enable/disable translucent trails
                 elif event.key == pg.K_t:
-                    trails = not trails
-                    if cool_trail:
-                        cool_trail = not cool_trail
-                    elif not cool_trail:
+                    settings['trails'] = not settings['trails']
+                    if settings['cool_trail']:
+                        settings['cool_trail'] = not settings['cool_trail']
+                    elif not settings['cool_trail']:
                         screen.fill(BLACK)
                         pg.display.flip()
                 # enable/disable solid trails
                 elif event.key == pg.K_c:
-                    cool_trail = not cool_trail
-                    if trails:
-                        trails = not trails
-                    elif not trails:
+                    settings['cool_trail'] = not settings['cool_trail']
+                    if settings['trails']:
+                        settings['trails'] = not settings['trails']
+                    elif not settings['trails']:
                         screen.fill(BLACK)
                         pg.display.flip()
                 elif event.key == pg.K_r:
@@ -150,7 +112,7 @@ def run_time(planet_list):
                     break
 
         # recalculates planets and their positions
-        merge_list = game.update_planets(w, h, planet_list, t_step, walls)
+        merge_list = game.update_planets(w, h, planet_list, settings['t_step'], settings['walls'])
         if len(merge_list) > 2:
             for i in range(0, len(merge_list), 2):
                 if merge_list[i] not in planet_list:
@@ -159,7 +121,7 @@ def run_time(planet_list):
                     planet_list.remove(merge_list[i])
 
         # deletes old drawings and replaces with black
-        if not trails and not cool_trail:
+        if not settings['trails'] and not settings['cool_trail']:
             if len(planet_list[0].pos_x_list) > 2:
                 for planet in planet_list:
                     s = pg.Surface((round(planet.radius) * 3, round(planet.radius) * 3))
@@ -167,7 +129,7 @@ def run_time(planet_list):
                     screen.blit(s, (
                         planet.pos_x_list[-2] - planet.radius * 1.5, planet.pos_y_list[-2] - planet.radius * 1.5))
         # process for translucent tail
-        if cool_trail:
+        if settings['cool_trail']:
             trails = False
             if len(planet_list[0].pos_x_list) > 2:
                 for planet in planet_list:
@@ -178,13 +140,13 @@ def run_time(planet_list):
 
         # draw each planet
         # strobe feature
-        if not strobe:
+        if not settings['strobe']:
             if weed:
                 for planet in planet_list:
                     planet.draw(screen, image=True)
             else:
                 for planet in planet_list:
-                    planet.draw(screen, aa=aa)
+                    planet.draw(screen, aa=settings['aa'])
         else:
             if weed:
                 for planet in planet_list:
@@ -193,10 +155,10 @@ def run_time(planet_list):
             else:
                 for planet in planet_list:
                     planet.draw(screen, color=(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)),
-                                aa=aa)
+                                aa=settings['aa'])
 
         # Prints time in simulation
-        t = t + t_step
+        t = t + settings['t_step']
         time_text = str(round(t))
         screen.fill(BLACK, (30, 10, 110, 30))
         time_draw = myfont.render(time_text, 1, (255, 255, 255))
@@ -218,7 +180,7 @@ def introScreen():
     buttons.append(galaxy_button)
     quit_button = GUI.Button("Quit", w / 2 + 300, h / 2 + 100, 200, 50, INACTIVE, ACTIVE, quit)
     buttons.append(quit_button)
-    settings_button = GUI.Button("Settings", w - 350, h - 200, 100, 50, INACTIVE, ACTIVE)
+    settings_button = GUI.Button("Settings", w - 350, h - 200, 100, 50, INACTIVE, ACTIVE, set_page)
     buttons.append(settings_button)
     intro = True
     while intro:
@@ -245,9 +207,8 @@ def introScreen():
 
 # loop for random generation user input for how many planets which are then generated
 def random_loop():
-    global walls, trails, cool_trail, strobe, setup, weed, amntOfPlanets
+    global settings, setup, weed
     game_is_running = True  # as long as the game is running this is true and the pygame window persists
-    locals().update(settings)
     input_box = GUI.InputBox(w / 2 - 100, h / 2, 200, 40)
     while game_is_running:
         user_input = None
@@ -292,7 +253,7 @@ def random_loop():
 
 # more interactive mode which allows users to set initial mass position and velocity of the planets
 def galaxy_creator():
-    global walls, trails, cool_trail, strobe, setup, weed
+    global settings, setup, weed
     locals().update(settings)
     game_is_running = True  # as long as the game is running this is true and the pygame window persists
     planet_list = []
@@ -437,7 +398,7 @@ def galaxy_creator():
 
             # draws planets
             for planet in reversed(planet_list):
-                planet.draw(screen, aa=aa)
+                planet.draw(screen, aa=settings['aa'])
             # draws tool box
             tool_bar.draw(screen)
             # updates screen
@@ -445,23 +406,77 @@ def galaxy_creator():
         run = True
 
 
-def settings():
+def set_page():
+    global settings, walls, trails, cool_trail, strobe
+    buttons = []
+    setting_texts = []
+    x_pos = -500
+    y_sep = 100
+    width = 200
+    height = 50
+    walls_button = GUI.Button("Walls", w / 2 + x_pos, h / 2 - 2 * y_sep, width, height, INACTIVE, ACTIVE, state=settings['walls'], state_name='walls')
+    buttons.append(walls_button)
+
+    trails_button = GUI.Button("Trails", w / 2 + x_pos, h / 2 - y_sep, width, height, INACTIVE, ACTIVE, state=settings['trails'], state_name='trails')
+    buttons.append(trails_button)
+
+    cool_trail_button = GUI.Button("Cool Trails", w / 2 + x_pos, h / 2, width, height, INACTIVE, ACTIVE, state=settings['cool_trail'], state_name='cool_trail')
+    buttons.append(cool_trail_button)
+
+    strobe_button = GUI.Button("Strobe", w / 2 + x_pos, h / 2 + y_sep, width, height, INACTIVE, ACTIVE, state=settings['strobe'], state_name='strobe')
+    buttons.append(strobe_button)
+
+    aa_button = GUI.Button("Anti-Aliasing", w / 2 + x_pos, h / 2 + 2 * y_sep, width, height, INACTIVE, ACTIVE, state=settings['aa'], state_name='aa')
+    buttons.append(aa_button)
+
+    t_step_button = GUI.Button("Accuracy", w / 2 + x_pos, h / 2 + 3 * y_sep, width, height, INACTIVE, ACTIVE, state=settings['t_step'], state_name='t_step')
+    buttons.append(t_step_button)
+
     in_settings = True
     while in_settings:
         # --- Set Up --- #
         # Create Planets
         for event in pg.event.get():
+            for button in buttons:
+                output = button.handle_event(event)
+                if output is not None:
+                    print("the ouput is :", output)
             if event.type == pg.KEYUP:
                 if event.key == pg.K_ESCAPE:
+                    print(settings)
                     introScreen()
         screen.fill(BLACK)
         screen.blit(BackGround.image, BackGround.rect)
         settings_text = pg.font.Font(None, 120)
-        text_surf, text_rect = GUI.text_objects("PHYSICS SIMULATOR PRO: 2018", settings_text)
+        text_surf, text_rect = GUI.text_objects("Settings", settings_text)
         text_rect.center = ((w / 2), (h / 2) - 500)
         screen.blit(text_surf, text_rect)
+        for button in buttons:
+            setting = button.variable
+            settings[setting] = button.state
+            button.check_hover()
+            button.draw(screen)
 
+            for line in fileinput.input('settings.txt', inplace=True):
+                try:
+                    for setting in settings:
+                        if setting in line:
+                            line = line.replace("False", str(settings[setting]))
+                            line = line.replace("True", str(settings[setting]))
+                            if "True" not in line and "False" not in line:
+                                line = "%s: %.1f" % (setting, settings[setting])
+                            print(line)
+                except FileExistsError:
+                    print("Error occured try again")
 
+        print(settings)
+        locals().update(settings)
+
+        for text in setting_texts:
+            text.draw(screen)
+
+        pg.display.update()
+        clock.tick(60)
 
 introScreen()
 # Close the window and quit.

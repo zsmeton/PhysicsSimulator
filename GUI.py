@@ -1,10 +1,11 @@
 # __ Classes for Graphical Interface __ #
 
 import pygame as pg
-import globalFunctions as functions
 from pygame import gfxdraw as gfx
+
 import Planets as P
 import Vector
+import globalFunctions as functions
 
 # color constants
 BLACK = (0, 0, 0)
@@ -95,7 +96,7 @@ def text_objects(text, font):
 # with elements of
 # source : https://pythonprogramming.net/pygame-buttons-part-1-button-rectangle/
 class Button:
-    def __init__(self, msg, x, y, w, h, ic, ac, action=None):
+    def __init__(self, msg, x, y, w, h, ic, ac, action=None, state=None, state_name=None):
         self.rect = pg.Rect(x, y, w, h)
         self.x = x
         self.y = y
@@ -109,11 +110,26 @@ class Button:
         self.text_surf, self.text_rect = text_objects(self.msg, ButtonFont)
         self.text_rect.center = ((x + (w / 2)), (y + (h / 2)))
         self.active = False
+        self.state = state
+        self.variable = state_name
+        if self.state is not None:
+            self.text_state = SettingsText(self.x, self.y, self.state)
 
     def handle_event(self, event):
         if event.type == pg.MOUSEBUTTONDOWN:
             if self.rect.collidepoint(event.pos):
-                self.action()
+                if self.action is not None:
+                    self.action()
+                if self.state is not None:
+                    if isinstance(self.state, bool):
+                        self.state = not self.state
+                    elif isinstance(self.state, float):
+                        if self.state <= 2:
+                            self.state += 0.1
+                        else:
+                            self.state = 0.1
+                    self.text_state.update_text(self.state)
+                    return self.state
 
     def check_hover(self):
         if self.rect.collidepoint(pg.mouse.get_pos()):
@@ -126,10 +142,14 @@ class Button:
         if self.active:
             self.color = self.active_c
             pg.draw.rect(screen, self.color, (self.x, self.y, self.w, self.h))
+            if self.state is not None:
+                self.text_state.draw(screen)
         else:
             self.color = self.inactive_c
             pg.draw.rect(screen, (119, 119, 119), (self.x - 5, self.y - 5, self.w + 10, self.h + 10))
             pg.draw.rect(screen, self.color, (self.x, self.y, self.w, self.h))
+            if self.state is not None:
+                self.text_state.draw(screen)
         # Blit the text.
         screen.blit(self.text_surf, self.text_rect)
 
@@ -455,3 +475,24 @@ def colorize(image, newColor):
     # add in new RGB values
     image.fill(newColor[0:3] + (0,), None, pg.BLEND_RGBA_ADD)
     return image
+
+
+class SettingsText:
+    def __init__(self, x, y, setting):
+        self.msg = str(setting)
+        self.font = pg.font.Font(None, 22)
+        self.text_surf, self.text_rect = text_objects(self.msg, self.font)
+        self.x = x
+        self.y = y
+
+    def update_text(self, setting):
+        print(self.msg)
+        if isinstance(setting, float):
+            self.msg = str("%.1f" % setting)
+        elif isinstance(setting, bool):
+            self.msg = str(setting)
+        self.text_surf, self.text_rect = text_objects(self.msg, self.font)
+        print(self.msg)
+
+    def draw(self, screen):
+        screen.blit(self.text_surf, (self.x, self.y))

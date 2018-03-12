@@ -1,7 +1,11 @@
-420: False
-walls: False
-trails: False
+walls: True
+
+trails: True
+
 cool_trail: False
+
 strobe: False
-aa: True
-t_step: 0.5
+
+aa: False
+
+t_step: 1.2
