@@ -1,6 +1,6 @@
 # __ main loop __ #
 # does mostly graphics and game setup
-
+# Library Imports:
 import ctypes
 import fileinput
 import random
@@ -10,10 +10,10 @@ import time
 import pygame as pg
 
 import GUI
-# Library Imports:
 import Planets as P
 import game_loop as game
 
+# Globals
 # Define some colors
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
@@ -25,43 +25,49 @@ ACTIVE = (56, 0, 94)
 # get amount of planets for the simulation
 amntOfPlanets = 0
 
+# game setting booleans
 weed = False
 settings = {'walls': False, 'trails': False, 'cool_trail': False, 'strobe': False, 'aa': False, 't_step': 0.2}
 setup = False
 
-with open("settings.txt", 'r+') as data:
-    for line in data:
-        for setting in settings:
-            if setting in line:
-                if 'False' in line:
-                    settings[setting] = False
-                elif 'True' in line:
-                    settings[setting] = True
-                else:
-                    amount = re.findall("\d+\.\d+", line)
-                    amount = float(amount[0])
-                    settings[setting] = amount
-print(settings)
 
-# set up pygame
-pg.init()  # initializes screen full screen
-pg.mouse.set_cursor(*pg.cursors.diamond)
-ctypes.windll.user32.SetProcessDPIAware()
-true_res = (ctypes.windll.user32.GetSystemMetrics(0), ctypes.windll.user32.GetSystemMetrics(1))
-screen = pg.display.set_mode(true_res, pg.FULLSCREEN)
-pg.display.set_caption("Physics Simulator")
-clock = pg.time.Clock()  # used to manage how fast the screen updates
-myfont = pg.font.Font(None, 36)  # sets the font for text in pygame
-rect_x = 50
-rect_y = 50
-w, h = pg.display.get_surface().get_size()  # gets the size of the screen for planet placement
-# image source :
-BackGround = GUI.Background('background_.jpg', [w / 2, h / 2])
-print(w, h)
-s_x = 27  # size of clearing box in x
-s_y = 27  # size of clearing box in y
-clear = pg.Surface((s_x, s_y))  # small clearing box for smaller screen updates
-clear.fill(BLACK)  # sets clearing box to black
+def get_settings():
+    with open("settings.txt", 'r+') as data:
+        for line in data:
+            for setting in settings:
+                if setting in line:
+                    if 'False' in line:
+                        settings[setting] = False
+                    elif 'True' in line:
+                        settings[setting] = True
+                    else:
+                        amount = re.findall("\d+\.\d+", line)
+                        amount = float(amount[0])
+                        settings[setting] = amount
+    print(settings)
+
+
+def setup_pygame():
+    global myfont, screen, BackGround, clock, clear, WIDTH, HEIGHT
+    # set up pygame
+    pg.init()  # initializes screen full screen
+    pg.mouse.set_cursor(*pg.cursors.diamond)
+    ctypes.windll.user32.SetProcessDPIAware()
+    true_res = (ctypes.windll.user32.GetSystemMetrics(0), ctypes.windll.user32.GetSystemMetrics(1))
+    screen = pg.display.set_mode(true_res, pg.FULLSCREEN)
+    pg.display.set_caption("Physics Simulator")
+    clock = pg.time.Clock()  # used to manage how fast the screen updates
+    myfont = pg.font.Font(None, 36)  # sets the font for text in pygame
+    rect_x = 50
+    rect_y = 50
+    WIDTH, HEIGHT = pg.display.get_surface().get_size()  # gets the size of the screen for planet placement
+    # image source :
+    BackGround = GUI.Background('background_.jpg', [WIDTH / 2, HEIGHT / 2])
+    print(WIDTH, HEIGHT)
+    s_x = 27  # size of clearing box in x
+    s_y = 27  # size of clearing box in y
+    clear = pg.Surface((s_x, s_y))  # small clearing box for smaller screen updates
+    clear.fill(BLACK)  # sets clearing box to black
 
 
 # the loop which runs once game setup has been completed
@@ -112,7 +118,7 @@ def run_time(planet_list):
                     break
 
         # recalculates planets and their positions
-        merge_list = game.update_planets(w, h, planet_list, settings['t_step'], settings['walls'])
+        merge_list = game.update_planets(WIDTH, HEIGHT, planet_list, settings['t_step'], settings['walls'])
         if len(merge_list) > 2:
             for i in range(0, len(merge_list), 2):
                 if merge_list[i] not in planet_list:
@@ -174,13 +180,13 @@ def run_time(planet_list):
 # main menu for the game
 def introScreen():
     buttons = []
-    random_button = GUI.Button("Random Generation", w / 2 - 500, h / 2 + 100, 200, 50, INACTIVE, ACTIVE, random_loop)
+    random_button = GUI.Button("Random Generation", WIDTH / 2 - 500, HEIGHT / 2 + 100, 200, 50, INACTIVE, ACTIVE, random_loop)
     buttons.append(random_button)
-    galaxy_button = GUI.Button("Galaxy Creation", w / 2 - 100, h / 2 + 100, 200, 50, INACTIVE, ACTIVE, galaxy_creator)
+    galaxy_button = GUI.Button("Galaxy Creation", WIDTH / 2 - 100, HEIGHT / 2 + 100, 200, 50, INACTIVE, ACTIVE, galaxy_creator)
     buttons.append(galaxy_button)
-    quit_button = GUI.Button("Quit", w / 2 + 300, h / 2 + 100, 200, 50, INACTIVE, ACTIVE, quit)
+    quit_button = GUI.Button("Quit", WIDTH / 2 + 300, HEIGHT / 2 + 100, 200, 50, INACTIVE, ACTIVE, quit)
     buttons.append(quit_button)
-    settings_button = GUI.Button("Settings", w - 350, h - 200, 100, 50, INACTIVE, ACTIVE, set_page)
+    settings_button = GUI.Button("Settings", WIDTH - 350, HEIGHT - 200, 100, 50, INACTIVE, ACTIVE, set_page)
     buttons.append(settings_button)
     intro = True
     while intro:
@@ -195,7 +201,7 @@ def introScreen():
         screen.blit(BackGround.image, BackGround.rect)
         large_text = pg.font.Font(None, 120)
         text_surf, text_rect = GUI.text_objects("PHYSICS SIMULATOR PRO: 2018", large_text)
-        text_rect.center = ((w / 2), (h / 2) - 200)
+        text_rect.center = ((WIDTH / 2), (HEIGHT / 2) - 200)
         screen.blit(text_surf, text_rect)
         for button in buttons:
             button.check_hover()
@@ -207,11 +213,11 @@ def introScreen():
 
 # loop for random generation user input for how many planets which are then generated
 def random_loop():
-    global settings, setup, weed
+    global settings, setup, weed, amntOfPlanets
     weed = False
     setup = False
     game_is_running = True  # as long as the game is running this is true and the pygame window persists
-    input_box = GUI.InputBox(w / 2 - 100, h / 2, 200, 40)
+    input_box = GUI.InputBox(WIDTH / 2 - 100, HEIGHT / 2, 200, 40)
     while game_is_running:
         user_input = None
         # takes user input in the form of a text box
@@ -235,7 +241,7 @@ def random_loop():
             screen.blit(BackGround.image, BackGround.rect)
             question = pg.font.Font(None, 40)
             text_surf, text_rect = GUI.text_objects("How many planets would you like?", question)
-            text_rect.center = ((w / 2), (h / 2) - 100)
+            text_rect.center = ((WIDTH / 2), (HEIGHT / 2) - 100)
             screen.blit(text_surf, text_rect)
             input_box.draw(screen)
             pg.display.flip()
@@ -246,9 +252,9 @@ def random_loop():
         # randomly generates the amnt of planets inputted by user
         planet_list = []
         for j in range(amntOfPlanets):
-            planet = P.Planet(w, h)
+            planet = P.Planet(WIDTH, HEIGHT)
             planet_list.append(planet)
-        SUN = P.Planet(w, h, sun=True)
+        SUN = P.Planet(WIDTH, HEIGHT, sun=True)
         planet_list.append(SUN)
         run_time(planet_list)
 
@@ -263,9 +269,9 @@ def galaxy_creator():
     slider_list = []
     color_list = []
     vector_list = []
-    screen_limits = [w, h]
+    screen_limits = [WIDTH, HEIGHT]
     run = False
-    tool_bar = GUI.ToolBar(w - 3, h - 3, 275, 60)
+    tool_bar = GUI.ToolBar(WIDTH - 3, HEIGHT - 3, 275, 60)
     tool_selected = 0
     while game_is_running:
         done = False
@@ -377,7 +383,7 @@ def galaxy_creator():
                         pos = pg.mouse.get_pos()
                         x = pos[0]
                         y = pos[1]
-                        planet = P.Planet(w, h, x, y)
+                        planet = P.Planet(WIDTH, HEIGHT, x, y)
                         planet_list.append(planet)
             # sets current planet list to initial planet list
             # clears screen
@@ -410,29 +416,29 @@ def galaxy_creator():
 
 
 def set_page():
-    global settings, walls, trails, cool_trail, strobe
+    global settings
     buttons = []
     setting_texts = []
     x_pos = -500
     y_sep = 100
     width = 200
     height = 50
-    walls_button = GUI.Button("Walls", w / 2 + x_pos, h / 2 - 2 * y_sep, width, height, INACTIVE, ACTIVE, state=settings['walls'], state_name='walls')
+    walls_button = GUI.Button("Walls", WIDTH / 2 + x_pos, HEIGHT / 2 - 2 * y_sep, width, height, INACTIVE, ACTIVE, state=settings['walls'], state_name='walls')
     buttons.append(walls_button)
 
-    trails_button = GUI.Button("Trails", w / 2 + x_pos, h / 2 - y_sep, width, height, INACTIVE, ACTIVE, state=settings['trails'], state_name='trails')
+    trails_button = GUI.Button("Trails", WIDTH / 2 + x_pos, HEIGHT / 2 - y_sep, width, height, INACTIVE, ACTIVE, state=settings['trails'], state_name='trails')
     buttons.append(trails_button)
 
-    cool_trail_button = GUI.Button("Cool Trails", w / 2 + x_pos, h / 2, width, height, INACTIVE, ACTIVE, state=settings['cool_trail'], state_name='cool_trail')
+    cool_trail_button = GUI.Button("Cool Trails", WIDTH / 2 + x_pos, HEIGHT / 2, width, height, INACTIVE, ACTIVE, state=settings['cool_trail'], state_name='cool_trail')
     buttons.append(cool_trail_button)
 
-    strobe_button = GUI.Button("Strobe", w / 2 + x_pos, h / 2 + y_sep, width, height, INACTIVE, ACTIVE, state=settings['strobe'], state_name='strobe')
+    strobe_button = GUI.Button("Strobe", WIDTH / 2 + x_pos, HEIGHT / 2 + y_sep, width, height, INACTIVE, ACTIVE, state=settings['strobe'], state_name='strobe')
     buttons.append(strobe_button)
 
-    aa_button = GUI.Button("Anti-Aliasing", w / 2 + x_pos, h / 2 + 2 * y_sep, width, height, INACTIVE, ACTIVE, state=settings['aa'], state_name='aa')
+    aa_button = GUI.Button("Anti-Aliasing", WIDTH / 2 + x_pos, HEIGHT / 2 + 2 * y_sep, width, height, INACTIVE, ACTIVE, state=settings['aa'], state_name='aa')
     buttons.append(aa_button)
 
-    t_step_button = GUI.Button("Speed", w / 2 + x_pos, h / 2 + 3 * y_sep, width, height, INACTIVE, ACTIVE, state=settings['t_step'], state_name='t_step')
+    t_step_button = GUI.Button("Speed", WIDTH / 2 + x_pos, HEIGHT / 2 + 3 * y_sep, width, height, INACTIVE, ACTIVE, state=settings['t_step'], state_name='t_step')
     buttons.append(t_step_button)
 
     in_settings = True
@@ -443,7 +449,7 @@ def set_page():
             for button in buttons:
                 output = button.handle_event(event)
                 if output is not None:
-                    print("the ouput is :", output)
+                    print("the output is :", output)
             if event.type == pg.KEYUP:
                 if event.key == pg.K_ESCAPE:
                     print(settings)
@@ -452,7 +458,7 @@ def set_page():
         screen.blit(BackGround.image, BackGround.rect)
         settings_text = pg.font.Font(None, 120)
         text_surf, text_rect = GUI.text_objects("Settings", settings_text)
-        text_rect.center = ((w / 2), (h / 2) - 500)
+        text_rect.center = ((WIDTH / 2), (HEIGHT / 2) - 500)
         screen.blit(text_surf, text_rect)
         for button in buttons:
             setting = button.variable
@@ -470,7 +476,7 @@ def set_page():
                                 line = "%s: %.1f" % (setting, settings[setting])
                             print(line)
             except FileExistsError:
-                print("Error occured try again")
+                print("Error occurred try again")
 
         print(settings)
         locals().update(settings)
@@ -481,6 +487,10 @@ def set_page():
         pg.display.update()
         clock.tick(60)
 
-introScreen()
-# Close the window and quit.
-pg.quit()
+
+if __name__ == '__main__':
+    get_settings()
+    setup_pygame()
+    introScreen()
+    # Close the window and quit.
+    pg.quit()
