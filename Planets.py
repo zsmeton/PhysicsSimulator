@@ -47,6 +47,7 @@ class Planet:
             self.B = 0
 
         self.radius = round(functions.variable_mapping(self.mass, 1e9, 10e11, 4, 15))
+        print(self.radius)
         self.rect = self.update_hit_box()
         # intitial: x,y,vx,vy,mass,color
         self.initial_state = [self.pos_x, self.pos_y, self.vel_x, self.vel_y, self.mass, [self.R, self.G, self.B]]
