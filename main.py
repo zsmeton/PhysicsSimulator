@@ -476,9 +476,6 @@ def set_page():
                     # write line to file
                     data.write(line)
 
-
-        #locals().update(settings)
-
         for text in setting_texts:
             text.draw(screen)
 

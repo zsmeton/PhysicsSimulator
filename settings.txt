@@ -2,5 +2,5 @@ walls: False
 trails: False
 cool_trail: False
 strobe: False
-aa: False
-t_step: 0.2
+aa: True
+t_step: 0.4

@@ -66,9 +66,12 @@ def accel_due_to_gravity(planet_accel_x, planet_accel_y, planet_list):
     for i in range(len(planet_list)):
         for j in range(i + 1, len(planet_list)):
             if math.sqrt((planet_list[i].pos_x - planet_list[j].pos_x) ** 2 + (
-                    planet_list[i].pos_y - planet_list[j].pos_y) ** 2) == 0:
-                planet_list[i].update_pos = [planet_list[i].pos_x + .00001]
-                planet_list[i].update_pos = [planet_list[i].pos_y + .00001]
+                    planet_list[i].pos_y - planet_list[j].pos_y) ** 2) < 0.001:
+                planet_list[i].update_pos = planet_list[i].update_pos_x(planet_list[i].pos_x + .0001*random.uniform(0, 2))
+                planet_list[i].update_pos = planet_list[i].update_pos_y(planet_list[i].pos_y + .0001*random.uniform(0, 2))
+                planet_list[j].update_pos = planet_list[i].update_pos_x(planet_list[i].pos_x - .0001*random.uniform(0, 2))
+                planet_list[j].update_pos = planet_list[i].update_pos_y(planet_list[i].pos_y - .0001*random.uniform(0, 2))
+
             g_r = -(G / (math.sqrt((planet_list[i].pos_x - planet_list[j].pos_x) ** 2 + (
                     planet_list[i].pos_y - planet_list[j].pos_y) ** 2) ** 3))
             x_field = g_r * (planet_list[i].pos_x - planet_list[j].pos_x)
