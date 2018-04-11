@@ -452,7 +452,6 @@ def set_page():
                     print("the output is :", output)
             if event.type == pg.KEYUP:
                 if event.key == pg.K_ESCAPE:
-                    print(settings)
                     introScreen()
         screen.fill(BLACK)
         screen.blit(BackGround.image, BackGround.rect)
@@ -466,20 +465,19 @@ def set_page():
             button.check_hover()
             button.draw(screen)
 
-            try:
-                for line in fileinput.input('settings.txt', inplace=True):
-                    for setting in settings:
-                        if setting in line:
-                            line = line.replace("False", str(settings[setting]))
-                            line = line.replace("True", str(settings[setting]))
-                            if "True" not in line and "False" not in line:
-                                line = "%s: %.1f" % (setting, settings[setting])
-                            print(line)
-            except FileExistsError:
-                print("Error occurred try again")
+        with open("settings.txt", 'w+') as data:
+            for setting in settings:
+                    # change the contents of the line
+                    if isinstance(settings[setting], bool):
+                        line = "%s: %r\n" % (setting, settings[setting])
+                    else:
+                        line = "%s: %.1f\n" % (setting, settings[setting])
+                    print(line)
+                    # write line to file
+                    data.write(line)
 
-        print(settings)
-        locals().update(settings)
+
+        #locals().update(settings)
 
         for text in setting_texts:
             text.draw(screen)

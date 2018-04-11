@@ -140,6 +140,7 @@ def variable_mapping(value, from_low, from_high, to_low, to_high):
     new_value = (((value - from_low) * new_range) / old_range) + to_low
     return new_value
 
+
 class ListSwitch:
     def __init__(self, length):
         self.list = []
