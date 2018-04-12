@@ -1,15 +1,7 @@
 # Library Imports:
-import ctypes
-import fileinput
-import random
-import re
-import time
-
 import pygame as pg
 
-import GUI
 import Planets as p
-import game_loop as game
 import globalFunctions as gf
 
 if __name__ == '__main__':

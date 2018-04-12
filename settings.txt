@@ -3,4 +3,4 @@ trails: False
 cool_trail: False
 strobe: False
 aa: True
-t_step: 0.4
+t_step: 0.2

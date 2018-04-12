@@ -8,15 +8,12 @@ def update_planets(w, h, planet_list, t_step, walls_enabled):
     default = 0
     planet_x = dict.fromkeys(planet_list, default)
     planet_y = dict.fromkeys(planet_list, default)
-    pos_list = []  # Collision detection and momentum calculations:
-    vel_list = []
     collision_velocities = []
-    merge_list = []
 
     # bounce off wall if it hits wall
     if walls_enabled:
-        for i in range(len(planet_list)):
-            functions.wall_collision(i, planet_list, w, h)
+        for planet in planet_list:
+            functions.wall_collision(planet, w, h)
 
     current_collisions = functions.collision_detection(planet_list)  # finds collisions and returns as objects colliding
 
@@ -70,19 +67,18 @@ def update_planets(w, h, planet_list, t_step, walls_enabled):
             i.update_accel([planet_x[i], planet_y[i]])
 
     # position update loops
-    for i in range(len(planet_list)):
-        pos_planet = functions.position(i, planet_list, t_step)
-        pos_list.append(pos_planet)  # stores the position of all the planets
-
-    for i in range(len(planet_list)):
-        planet_list[i].update_pos(pos_list[i])
+    for planet in planet_list:
+        if abs(planet.pos_x) > 20000:
+            planet_list.remove(planet)
+            continue
+        elif abs(planet.pos_y) > 20000:
+            planet_list.remove(planet)
+            continue
+        else:
+            planet.update_pos(functions.position(planet, t_step))
 
     # velocity update loops
-    for i in range(len(planet_list)):
-        vel_planet = functions.velocity(i, planet_list, t_step)
-        vel_list.append(vel_planet)  # stores the velocity of all the planets
-
-    for i in range(len(planet_list)):
-        planet_list[i].update_vel(vel_list[i])
+    for planet in planet_list:
+        planet.update_vel(functions.velocity(planet, t_step))
 
     return merge_list

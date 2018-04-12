@@ -124,10 +124,12 @@ class Button:
                     if isinstance(self.state, bool):
                         self.state = not self.state
                     elif isinstance(self.state, float):
-                        if self.state <= 2:
-                            self.state += 0.1
+                        if self.state < 1:
+                            self.state += 0.2
+                        elif self.state < 2:
+                            self.state += 0.5
                         else:
-                            self.state = 0.1
+                            self.state = 0.2
                     self.text_state.update_text(self.state)
                     return self.state
 
@@ -332,7 +334,6 @@ class ToolBar:
     def handle_event(self, event):
         if event.type == pg.MOUSEBUTTONDOWN:
             if self.rect.collidepoint(event.pos):
-                print("Bar Hit")
                 for i, tool in enumerate(self.tool_list):
                     state = tool.handle_event(event)
                     if state:
@@ -371,11 +372,9 @@ class ColorSlider:
         r_active = self.slider_r.handle_event(event)
         g_active = self.slider_g.handle_event(event)
         b_active = self.slider_b.handle_event(event)
-        print(r_active, g_active, b_active)
         if r_active or g_active or b_active:
             return True
         else:
-            print("exiting")
             self.active = False
             return False
 
@@ -386,15 +385,14 @@ class ColorSlider:
 
     def get_value(self):
         self.r, nin = self.slider_r.get_value()
-        print(self.r)
         self.g, nin = self.slider_g.get_value()
-        print(self.g)
         self.b, nin = self.slider_b.get_value()
-        print(self.b)
         return [round(self.r), round(self.g), round(self.b)], self.linked_object
 
 
 class MouseVector:
+    limit = 300
+
     def __init__(self, linked, x, y):
         self.x = x
         self.y = y
@@ -406,9 +404,7 @@ class MouseVector:
         self.active = True
         # sets the lowest value for the vector as the radius of the planet so clicking near the surface is about 0 vel
         self.low = linked.radius
-        self.max = 3
-
-
+        self.max = 20
 
     def handle_event(self, event):
         if event.type == pg.MOUSEBUTTONDOWN:
@@ -420,12 +416,10 @@ class MouseVector:
                 return True
             # second click turns it off bu doesn't let other object instance happen
             elif self.active:
-                print("almost off")
                 self.active = False
                 return True
             # turns off completely and allows others
             else:
-                print("off")
                 self.active = False
                 return False
         else:
@@ -435,15 +429,15 @@ class MouseVector:
         if self.active:
             x_, y_ = pg.mouse.get_pos()
             self.mouse.set(x_, y_)
-            if self.origin.dist(self.mouse) > 100:
+            if self.origin.dist(self.mouse) > self.limit:
                 self.mouse.sub(self.origin)
-                self.mouse.limit(100)
+                self.mouse.limit(self.limit)
                 self.mouse.add(self.origin)
             end_point = [self.mouse.x, self.mouse.y]
             start_point = [self.origin.x, self.origin.y]
             pg.draw.aaline(screen, CYAN, start_point, end_point, True)
             vx,vy,other = self.get_value()
-            vel = Vector.Vector(vx,vy)
+            vel = Vector.Vector(vx, vy)
             tool_tip = "%.2f" % vel.mag()
             text_surface = VectorFont.render(tool_tip, True, CYAN)
             text_rect = text_surface.get_rect()
@@ -452,10 +446,9 @@ class MouseVector:
             screen.blit(text_surface, text_rect)
 
     def get_value(self):
-        print("mouse:", self.mouse, "origin:", self.origin, "dist:", self.origin.dist(self.mouse))
         result = self.mouse - self.origin
-        vx_ = functions.variable_mapping(result.x, 0, 100, 0, self.max)
-        vy_ = functions.variable_mapping(result.y, 0, 100, 0, self.max)
+        vx_ = functions.variable_mapping(result.x, 0, self.limit, 0, self.max)
+        vy_ = functions.variable_mapping(result.y, 0, self.limit, 0, self.max)
         print("returned", vx_, vy_)
         return vx_, vy_, self.linked
 

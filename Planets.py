@@ -7,7 +7,6 @@ import random
 import pygame as pg
 from pygame import gfxdraw as gfx
 
-import GUI
 import Vector as v
 import globalFunctions as functions
 
@@ -47,7 +46,6 @@ class Planet:
             self.B = 0
 
         self.radius = round(functions.variable_mapping(self.mass, 1e9, 10e11, 4, 15))
-        print(self.radius)
         self.rect = self.update_hit_box()
         # intitial: x,y,vx,vy,mass,color
         self.initial_state = [self.pos_x, self.pos_y, self.vel_x, self.vel_y, self.mass, [self.R, self.G, self.B]]
@@ -79,7 +77,6 @@ class Planet:
                 if self.rect.collidepoint(event.pos):
                     return True
         if self.active_move:
-            print("following mouse")
             x, y = pg.mouse.get_pos()
             self.planet_setup(x_=x, y_=y)
 
@@ -138,14 +135,7 @@ class Planet:
 
     # method : draws antialiased circle
     def draw(self, screen, aa=False, color=None, image=None):
-        if image is not None and color is not None:
-            planet_texture = GUI.Background('physics_weed.png', [round(self.pos_x), round(self.pos_y)])
-            planet_texture.image = GUI.colorize(planet_texture.image, color)
-            screen.blit(planet_texture.image, planet_texture.rect)
-        elif image is not None:
-            planet_texture = GUI.Background('physics_weed.png', [round(self.pos_x), round(self.pos_y)])
-            screen.blit(planet_texture.image, planet_texture.rect)
-        elif not aa:
+        if not aa:
             if color is None:
                 pg.draw.circle(screen, (self.R, self.G, self.B), (round(self.pos_x), round(self.pos_y)), self.radius)
             else:

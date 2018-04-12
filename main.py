@@ -2,7 +2,6 @@
 # does mostly graphics and game setup
 # Library Imports:
 import ctypes
-import fileinput
 import random
 import re
 import time
@@ -26,7 +25,6 @@ ACTIVE = (56, 0, 94)
 amntOfPlanets = 0
 
 # game setting booleans
-weed = False
 settings = {'walls': False, 'trails': False, 'cool_trail': False, 'strobe': False, 'aa': False, 't_step': 0.2}
 setup = False
 
@@ -44,7 +42,6 @@ def get_settings():
                         amount = re.findall("\d+\.\d+", line)
                         amount = float(amount[0])
                         settings[setting] = amount
-    print(settings)
 
 
 def setup_pygame():
@@ -63,7 +60,6 @@ def setup_pygame():
     WIDTH, HEIGHT = pg.display.get_surface().get_size()  # gets the size of the screen for planet placement
     # image source :
     BackGround = GUI.Background('background_.jpg', [WIDTH / 2, HEIGHT / 2])
-    print(WIDTH, HEIGHT)
     s_x = 27  # size of clearing box in x
     s_y = 27  # size of clearing box in y
     clear = pg.Surface((s_x, s_y))  # small clearing box for smaller screen updates
@@ -87,7 +83,7 @@ def run_time(planet_list):
             elif event.type == pg.KEYUP:
                 # exits code
                 if event.key == pg.K_ESCAPE:
-                    introScreen()
+                    intro_screen()
                 # enable/disable wall collision
                 elif event.key == pg.K_w:
                     settings['walls'] = not settings['walls']
@@ -134,9 +130,10 @@ def run_time(planet_list):
                     s.fill(BLACK)
                     screen.blit(s, (
                         planet.pos_x_list[-2] - planet.radius * 1.5, planet.pos_y_list[-2] - planet.radius * 1.5))
+
         # process for translucent tail
         if settings['cool_trail']:
-            trails = False
+            settings['trails'] = False
             if len(planet_list[0].pos_x_list) > 2:
                 for planet in planet_list:
                     s = pg.Surface((round(planet.radius) * 2.2, round(planet.radius) * 2.2))
@@ -147,21 +144,12 @@ def run_time(planet_list):
         # draw each planet
         # strobe feature
         if not settings['strobe']:
-            if weed:
-                for planet in planet_list:
-                    planet.draw(screen, image=True)
-            else:
-                for planet in planet_list:
-                    planet.draw(screen, aa=settings['aa'])
+            for planet in planet_list:
+                planet.draw(screen, aa=settings['aa'])
         else:
-            if weed:
-                for planet in planet_list:
-                    planet.draw(screen, image=True,
-                                color=(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)))
-            else:
-                for planet in planet_list:
-                    planet.draw(screen, color=(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)),
-                                aa=settings['aa'])
+            for planet in planet_list:
+                planet.draw(screen, color=(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)),
+                            aa=settings['aa'])
 
         # Prints time in simulation
         t = t + settings['t_step']
@@ -178,7 +166,7 @@ def run_time(planet_list):
 
 
 # main menu for the game
-def introScreen():
+def intro_screen():
     buttons = []
     random_button = GUI.Button("Random Generation", WIDTH / 2 - 500, HEIGHT / 2 + 100, 200, 50, INACTIVE, ACTIVE, random_loop)
     buttons.append(random_button)
@@ -213,8 +201,7 @@ def introScreen():
 
 # loop for random generation user input for how many planets which are then generated
 def random_loop():
-    global settings, setup, weed, amntOfPlanets
-    weed = False
+    global settings, setup, amntOfPlanets
     setup = False
     game_is_running = True  # as long as the game is running this is true and the pygame window persists
     input_box = GUI.InputBox(WIDTH / 2 - 100, HEIGHT / 2, 200, 40)
@@ -227,14 +214,10 @@ def random_loop():
             for event in pg.event.get():
                 if event.type == pg.KEYUP:
                     if event.key == pg.K_ESCAPE:
-                        introScreen()
+                        intro_screen()
                 user_input = input_box.handle_event(event)
                 if user_input:
                     amntOfPlanets = int(user_input)
-                    if amntOfPlanets == 420:
-                        print("SMOKE WEED DAILY")
-                        weed = True
-                        amntOfPlanets = 42
 
             input_box.update()
             screen.fill(BLACK)
@@ -261,8 +244,7 @@ def random_loop():
 
 # more interactive mode which allows users to set initial mass position and velocity of the planets
 def galaxy_creator():
-    global settings, setup, weed
-    weed = False
+    global settings, setup
     locals().update(settings)
     game_is_running = True  # as long as the game is running this is true and the pygame window persists
     planet_list = []
@@ -373,7 +355,7 @@ def galaxy_creator():
 
                 if event.type == pg.KEYUP:
                     if event.key == pg.K_ESCAPE:
-                        introScreen()
+                        intro_screen()
                     elif event.key == pg.K_RETURN:
                         done = True
                         continue
@@ -448,11 +430,9 @@ def set_page():
         for event in pg.event.get():
             for button in buttons:
                 output = button.handle_event(event)
-                if output is not None:
-                    print("the output is :", output)
             if event.type == pg.KEYUP:
                 if event.key == pg.K_ESCAPE:
-                    introScreen()
+                    intro_screen()
         screen.fill(BLACK)
         screen.blit(BackGround.image, BackGround.rect)
         settings_text = pg.font.Font(None, 120)
@@ -472,7 +452,6 @@ def set_page():
                         line = "%s: %r\n" % (setting, settings[setting])
                     else:
                         line = "%s: %.1f\n" % (setting, settings[setting])
-                    print(line)
                     # write line to file
                     data.write(line)
 
@@ -486,6 +465,6 @@ def set_page():
 if __name__ == '__main__':
     get_settings()
     setup_pygame()
-    introScreen()
+    intro_screen()
     # Close the window and quit.
     pg.quit()

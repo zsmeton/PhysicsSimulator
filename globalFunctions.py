@@ -84,17 +84,17 @@ def accel_due_to_gravity(planet_accel_x, planet_accel_y, planet_list):
 
 
 # calculates new position using constant accel kinematics
-def position(index, planet_list, time):
-    pos_x = planet_list[index].pos_x + planet_list[index].vel_x * time + .5 * planet_list[index].accel_x * (time ** 2)
-    pos_y = planet_list[index].pos_y + planet_list[index].vel_y * time + .5 * planet_list[index].accel_y * (time ** 2)
+def position(planet, time):
+    pos_x = planet.pos_x + planet.vel_x * time + .5 * planet.accel_x * (time ** 2)
+    pos_y = planet.pos_y + planet.vel_y * time + .5 * planet.accel_y * (time ** 2)
     new_position = [pos_x, pos_y]  # creates list for output so update of position can be done at end of update period
     return new_position
 
 
 # calculates new velocity using constant accel kinematics
-def velocity(index, planet_list, time):
-    vel_x = planet_list[index].vel_x + planet_list[index].accel_x * time
-    vel_y = planet_list[index].vel_y + planet_list[index].accel_y * time
+def velocity(planet, time):
+    vel_x = planet.vel_x + planet.accel_x * time
+    vel_y = planet.vel_y + planet.accel_y * time
     new_velocity = [vel_x, vel_y]  # creates list for output so update of position can be done at end of update period
     return new_velocity
 
@@ -126,13 +126,11 @@ def combine_planets(collision_list):
 
 
 # if a planet hits the wall reverse direction
-def wall_collision(index, planet_list, w, h):
-    if planet_list[index].pos_x >= w - planet_list[index].radius or planet_list[index].pos_x <= planet_list[
-        index].radius:
-        planet_list[index].update_velocity_x(-coefficient_of_collision * planet_list[index].vel_x)
-    if planet_list[index].pos_y >= h - planet_list[index].radius or planet_list[index].pos_y <= planet_list[
-        index].radius:
-        planet_list[index].update_velocity_y(-coefficient_of_collision * planet_list[index].vel_y)
+def wall_collision(planet, w, h):
+    if planet.pos_x >= w - planet.radius or planet.pos_x <= planet.radius:
+        planet.update_velocity_x(-coefficient_of_collision * planet.vel_x)
+    if planet.pos_y >= h - planet.radius or planet.pos_y <= planet.radius:
+        planet.update_velocity_y(-coefficient_of_collision * planet.vel_y)
 
 
 # maps a variables values based on old range and new range linearly
